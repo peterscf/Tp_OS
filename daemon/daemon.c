@@ -67,11 +67,27 @@ void sigquit_handler( int signum )
 
 void sigalarm_handler( int signum )
 {
+    int empty;
 	signal(SIGALRM,sigalarm_handler);
 	/*verifier si liste event vide 
 	si vide alors exe pause
 	sinon retire l'event de la liste (list_pop()) puis exe system() puis position nouvelle alarme sur next event si EOJ alors fin:
  	*/
+
+	list_del_first( l );
+      	list_check_if_empty( l, empty );
+	if ( !empty )
+    	{
+      		list_apply_function(l,printevent);
+
+      		alarm( (int)(((event*)l->content)->t) - time( NULL ) );
+
+      		fprintf( stderr, "Next event in %d sec\n",  (int)((((event*)l->content)->t) - time( NULL )) );
+    	}
+  	else{
+      		fprintf( stderr, "Nothing to do yet!\n" );
+      		pause();
+    	}	
 }
 
 int code_demon( char * cronfile )

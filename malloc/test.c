@@ -3,7 +3,7 @@
 #include "alloc.c"
 #define SZ 5
 
-#define OVERFLOW 1
+#define OVERFLOW 0 
 
 int main ( int argc, char ** argv )
 {
