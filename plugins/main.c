@@ -192,7 +192,8 @@ int main ( int argc, char ** argv )
 		TODO : Ecrivez le code de lancement de la routine
 		principale du plugin. 
 	       */
-	      
+	     	mat(*f)(mat,char*) = h.apply;
+		img = f( img, cmd_args ); 
 	    }
 	  else
 	    {

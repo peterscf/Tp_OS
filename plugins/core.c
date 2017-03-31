@@ -88,10 +88,19 @@ void plugin_scan( char* dir, list *plugins )
 		En cas d'erreur, vous afficherez les messages issus du
 		chargeur sur stderr. 
 	       */
-	      
-
-
-	      
+		h.handler = dlopen( sname, RTLD_LAZY );
+		h.apply = dlsym( h.handler, h.name );
+		sprintf( sname, "%s_helper", h.name );
+		h.help  = dlsym( h.handler, sname);
+	     	
+		if(dlerror()==NULL){ 
+			list_add_last( *plugins, h );
+			n++;
+		}
+		else{
+			fprintf( stderr, "\nerreur dans la création de la liste\n" );
+			exit(EXIT_FAILURE);
+		}
 	    } /* ptr != NULL */	  
 	}
 
