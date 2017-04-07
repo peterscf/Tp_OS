@@ -39,7 +39,7 @@
 */
 
 /* On commence SANS synchro, juste pour rire (jaune) */
-#define NOSYNC 
+#define LAMPORT  //PMUTEX 
 
 
 /*
@@ -64,8 +64,9 @@ unsigned int * numero;              /* tableau 'numero' dans l'algo du boulanger
 /* Fonction qui effectue le calcul et qui contient la section critique     */
 void * criticalSection( void * arg )
 {
-#ifdef LAMPORT
-  unsigned int i; 
+	#ifdef LAMPORT
+	  unsigned int i;
+	int j; 
 #endif
 #ifdef COMPARE
   int old,new,mult;
@@ -75,11 +76,10 @@ void * criticalSection( void * arg )
   int mult;
 #endif
 
-
   /*
     TODO : Convertir les arguments pour recuperer le bon type
    */
-  thread_arg a; /*  = ... */
+  thread_arg a = arg;
 
   /*****************************************************************/
   /*
@@ -89,6 +89,20 @@ void * criticalSection( void * arg )
   /*
     TODO : Implanter l'algorithme du boulanger de Leslie Lamport
    */
+	i=a->k;
+	choix[i]=1;
+	numero[i]=1+max(numero, a->m1->c);
+	choix[i]=0;	
+	for( j=0; j<(a->m1->c-1); j++){
+		while(choix[j]);
+			
+		while(numero[j] && (numero[j]<numero[i] || ((numero[j]==numero[i]) && (j<i) )));
+	}
+  	a->r->data[a->i][a->j] += (a->m1->data[a->i][a->k]) * (a->m2->data[a->k][a->j]); 
+
+		
+	    
+	numero[i]= 0;
 #endif
   
   /*****************************************************************/
@@ -99,6 +113,9 @@ void * criticalSection( void * arg )
   /* TODO : Implanter un mutex Posix
      Lire le manuel au sujet de pthread_mutex_{lock,unlock}
    */
+	pthread_mutex_lock(a->mutex);
+  	a->r->data[a->i][a->j] += (a->m1->data[a->i][a->k]) * (a->m2->data[a->k][a->j]); 
+  	pthread_mutex_unlock(a->mutex);
 #endif
 
   /*****************************************************************/
@@ -191,14 +208,15 @@ mat mat_pmul( mat m1, mat m2 )
         /* Ahhh le bon vieux pthread_create...
            TODO : Completer l'interieur du if(...) avec pthread_create
          */
-        if ( 1  /* remplacer le 1 par pthread_create */ ) 
+        if (pthread_create(&threads[k],NULL,criticalSection,&targs[k])!=0 ) 
         {
           /* Une cause d'erreur probable de pthread_create() est l'utilisation
              simultannée de trop nombreux threads. On va donc attendre qu'au
              moins un thread ait fini, parmi les premiers lancés.
-
+		
             TODO : utiliser pthread_join pour attendre la fin du thread[zorro]. 
           */
+		pthread_join(threads[zorro],NULL);
           zorro++;
           k--;
         }
@@ -214,6 +232,7 @@ mat mat_pmul( mat m1, mat m2 )
 	  for ( k = zorro; k < m1->c; k++ )
 	  {
 	    /* pthread_join */
+		pthread_join(threads[k],NULL);
 	  }
     }
 
