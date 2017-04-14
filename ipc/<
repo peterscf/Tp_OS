@@ -5,7 +5,6 @@
 #include <sys/shm.h>
 #include <unistd.h>
 #include <time.h>
-#include <signal.h>
 
 #include "mechanism.h"
 #include "message.h"
@@ -40,9 +39,6 @@ void detachSharedMemory()
 	shmdt(gameboard);
 }
 
-void quit( int dummy ) {
-  exit( EXIT_SUCCESS );
-}
 
 int main(int argc, char *argv[])
 {
@@ -57,8 +53,6 @@ int main(int argc, char *argv[])
 
     action_t takeSticks;
 
-	signal( SIGINT, quit );
-
     /* 
        Creation d'une file de messages
        -------------------------------
@@ -69,10 +63,8 @@ int main(int argc, char *argv[])
 
     /* TODO : ftok() */
 	keyQueue = ftok("./file_test.f" ,1); 
-	if(keyQueue == -1){
-		printf("erreur ftok queue\n");
-	}
-		
+
+
     /* TODO : msgget() 
        On veut creer la file avec des droits en lecture et écriture. On 
        utilisera donc les flags IPC_CREAT | 0666. 
@@ -99,9 +91,6 @@ int main(int argc, char *argv[])
     /* TODO : ftok() */ 
 	keySharedMemory=ftok("./file_test.f",2);
 
-	if(keySharedMemory == -1){
-		printf("erreur ftok queue\n");
-	}
     /* TODO : shmget() 
        On veut creer le segment avec des droits en lecture et écriture pour le
        serveur et en lecture pour les autres. On utilisera donc les flags 
@@ -132,9 +121,8 @@ int main(int argc, char *argv[])
     {
         /* TODO : msgrcv -- recevoir un message (type = 1) */
 
-msgrcv(queueId,&message, sizeof(message)-sizeof(long) ,1,0);
-
-	sscanf(message.data, "%d", &pid[player]);
+	msgrcv(queueId,& message, sizeof(message)-sizeof(long) ,1,0);
+        sscanf(message.data, "%d", &pid[player]);
         printf("Connection from player %d, with pid %d.\n", player, pid[player]);
 
         message.type = pid[player];
